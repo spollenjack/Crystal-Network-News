@@ -268,6 +268,132 @@ body {
 .footer-bottom { max-width:1440px; margin:28px auto 0; display:flex; justify-content:space-between; align-items:center; }
 .footer-copy { font-size:11px; color:rgba(241,241,241,0.25); }
 .footer-live { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:500; color:var(--lime); letter-spacing:0.1em; text-transform:uppercase; }
+
+/* ══════════════════════════════════════
+   MOBILE NAVIGATION
+══════════════════════════════════════ */
+.hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; cursor: pointer; padding: 4px; margin-left: auto;
+  background: none; border: none;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--fog); border-radius: 2px;
+  transition: all 0.25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none; position: fixed; top: 64px; left: 0; right: 0;
+  background: var(--charcoal); z-index: 99; flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.08); padding: 16px 0;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 13px; font-weight: 500; color: rgba(241,241,241,0.7);
+  text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 14px 24px; cursor: pointer; transition: color 0.2s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.mobile-menu a:hover, .mobile-menu a.active { color: var(--lime); }
+.mobile-menu-cta {
+  margin: 16px 24px 8px;
+  background: var(--lime); color: var(--charcoal); border: none;
+  padding: 13px 20px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.08em; text-align: center;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Navbar */
+  .navbar { padding: 0 20px; gap: 0; }
+  .navbar-links { display: none; }
+  .navbar-cta { display: none; }
+  .hamburger { display: flex; }
+
+  /* Ticker */
+  .ticker-label { padding: 0 10px; font-size: 9px; }
+  .ticker-content { font-size: 11px; }
+
+  /* Hero */
+  .hero { height: auto; min-height: 420px; }
+  .hero-gradient {
+    background: linear-gradient(to top, rgba(28,28,30,0.97) 0%, rgba(28,28,30,0.75) 60%, rgba(28,28,30,0.3) 100%);
+  }
+  .hero-content {
+    padding: 28px 24px 36px;
+    max-width: 100%;
+    justify-content: flex-end;
+  }
+  .hero-headline { font-size: 30px; margin-bottom: 12px; }
+  .hero-eyebrow { margin-bottom: 12px; }
+  .hero-meta { font-size: 12px; margin-bottom: 18px; flex-wrap: wrap; gap: 6px; }
+  .hero-empty-title { font-size: 24px; }
+  .hero-empty-label { font-size: 9px; }
+
+  /* Section */
+  .section { padding: 28px 16px; }
+
+  /* Story grid — single column */
+  .story-grid { grid-template-columns: 1fr; gap: 14px; }
+  .story-card-headline { font-size: 16px; }
+
+  /* Article */
+  .article-hero-wrap { height: 220px; }
+  .back-btn { padding: 16px 20px; font-size: 10px; }
+  .article-body { padding: 8px 16px 60px; }
+  .article-headline { font-size: 28px; margin-bottom: 16px; }
+  .article-byline { font-size: 12px; flex-wrap: wrap; gap: 6px; }
+  .article-text { font-size: 16px; line-height: 1.75; }
+
+  /* Submit */
+  .submit-wrap { padding: 36px 16px 80px; }
+  .page-title { font-size: 28px; }
+  .page-sub { font-size: 13px; margin-bottom: 28px; }
+  .submit-success { padding: 40px 20px; }
+  .submit-success-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .submit-success-btns .form-submit { width: 100% !important; margin-left: 0 !important; }
+
+  /* Category */
+  .category-header { padding: 32px 20px 28px; }
+  .category-name { font-size: 32px; margin-bottom: 18px; }
+  .cat-pill { font-size: 11px; padding: 6px 14px; }
+  .category-grid-wrap { padding: 20px 16px; }
+
+  /* About */
+  .about-hero { padding: 56px 20px; }
+  .about-hero-title { font-size: 38px; letter-spacing: -0.5px; }
+  .about-hero-sub { font-size: 15px; }
+  .about-body { padding: 40px 20px 80px; }
+  .about-stats { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .stat-card { padding: 18px 10px; }
+  .stat-number { font-size: 32px; }
+  .stat-label { font-size: 10px; }
+  .about-title { font-size: 22px; }
+  .about-text { font-size: 15px; }
+
+  /* Footer */
+  .footer { padding: 40px 20px 24px; margin-top: 40px; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; padding-bottom: 32px; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  .footer-copy { font-size: 10px; }
+}
+
+@media (max-width: 420px) {
+  .hero-headline { font-size: 26px; }
+  .about-hero-title { font-size: 30px; }
+  .about-stats { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; gap: 24px; }
+  .category-name { font-size: 26px; }
+}
+
 </style>
 </head>
 <body>
@@ -281,7 +407,7 @@ body {
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <div class="navbar-logo" onclick="showPage('home')">
+  <div class="navbar-logo" onclick="showPage('home');closeMobileMenu()">
     <div class="logo-mark">CNN</div>
     <div class="logo-text">Crystal <span>News</span> Network</div>
   </div>
@@ -291,7 +417,18 @@ body {
     <a id="nav-about" onclick="showPage('about')">About</a>
   </div>
   <button class="navbar-cta" onclick="showPage('submit')">+ Submit a Story</button>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a id="mnav-home" class="active" onclick="showPage('home');closeMobileMenu()">Home</a>
+  <a id="mnav-category" onclick="showPage('category');closeMobileMenu()">Categories</a>
+  <a id="mnav-about" onclick="showPage('about');closeMobileMenu()">About</a>
+  <button class="mobile-menu-cta" onclick="showPage('submit');closeMobileMenu()">+ Submit a Story</button>
+</div>
 
 <!-- TICKER -->
 <div class="ticker">
@@ -408,8 +545,10 @@ body {
       <h3>Story Published</h3>
       <p>Your report is now live on Crystal News Network.</p>
       <br>
-      <button class="form-submit" style="width:auto;padding:12px 28px;margin-top:8px;" onclick="resetSubmit()">File Another Story</button>
-      <button class="form-submit" style="width:auto;padding:12px 28px;margin-top:8px;margin-left:8px;background:var(--charcoal);color:var(--fog);" onclick="showPage('home')">Go to Homepage</button>
+      <div class="submit-success-btns">
+        <button class="form-submit" style="width:auto;padding:12px 28px;" onclick="resetSubmit()">File Another Story</button>
+        <button class="form-submit" style="width:auto;padding:12px 28px;background:var(--charcoal);color:var(--fog);" onclick="showPage('home')">Go to Homepage</button>
+      </div>
     </div>
   </div>
 </div>
@@ -528,6 +667,7 @@ const TAG_MAP = {
   world:'tag-world', tech:'tag-tech'
 };
 
+// Declared early so the timeout and catch blocks can safely reference them
 let articles = [];
 let pendingImageData = null;
 let prevPage = 'home';
@@ -721,6 +861,7 @@ async function submitStory() {
   const category = document.getElementById('field-category').value;
   const body     = document.getElementById('field-body').value.trim();
   const errEl    = document.getElementById('submit-error');
+  const btn      = document.getElementById('submit-btn');
 
   errEl.style.display = 'none';
 
@@ -730,7 +871,12 @@ async function submitStory() {
     return;
   }
 
-  const btn = document.getElementById('submit-btn');
+  if (!db) {
+    errEl.textContent = 'Database not connected. Check your Supabase credentials.';
+    errEl.style.display = 'block';
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Publishing...';
 
@@ -741,23 +887,30 @@ async function submitStory() {
     body
   };
 
-  const { data, error } = await db.from('articles').insert([newArticle]).select();
+  try {
+    const insertPromise = db.from('articles').insert([newArticle]).select();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out after 10 seconds')), 10000)
+    );
 
-  if (error) {
-    errEl.textContent = 'Failed to publish story. Please check your connection and try again.';
+    const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
+
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) throw new Error('Insert returned no data — check your RLS insert policy in Supabase.');
+
+    articles.unshift(data[0]);
+    renderHome();
+    renderTicker();
+    document.getElementById('submit-form-wrap').style.display = 'none';
+    document.getElementById('submit-success').style.display = 'block';
+
+  } catch (err) {
+    errEl.textContent = 'Publish failed: ' + err.message;
     errEl.style.display = 'block';
+  } finally {
     btn.disabled = false;
     btn.textContent = 'Publish Story';
-    return;
   }
-
-  articles.unshift(data[0]);
-  renderHome();
-  renderTicker();
-  btn.disabled = false;
-  btn.textContent = 'Publish Story';
-  document.getElementById('submit-form-wrap').style.display = 'none';
-  document.getElementById('submit-success').style.display = 'block';
 }
 
 function resetSubmit() {
@@ -773,9 +926,14 @@ function resetSubmit() {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
+  // Sync desktop nav
   document.querySelectorAll('.navbar-links a').forEach(a => a.classList.remove('active'));
   const el = document.getElementById('nav-'+name);
   if (el) el.classList.add('active');
+  // Sync mobile nav
+  document.querySelectorAll('.mobile-menu a').forEach(a => a.classList.remove('active'));
+  const mel = document.getElementById('mnav-'+name);
+  if (mel) mel.classList.add('active');
   if (name === 'category') renderCategoryPage();
   if (name === 'about')    renderAbout();
   window.scrollTo(0,0);
@@ -785,6 +943,18 @@ function showPage(name) {
 document.getElementById('footer-cats').innerHTML = CATEGORIES.slice(0,5).map(c =>
   `<li><a onclick="showPage('category');filterCat('${c.toLowerCase()}')">${c}</a></li>`
 ).join('');
+
+/* ——— MOBILE MENU ——— */
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const burger = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  burger.classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
 
 /* ——— INIT ——— */
 fetchArticles();
