@@ -269,6 +269,22 @@ body {
 .footer-copy { font-size:11px; color:rgba(241,241,241,0.25); }
 .footer-live { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:500; color:var(--lime); letter-spacing:0.1em; text-transform:uppercase; }
 
+
+/* ——— DELETE BUTTON ——— */
+.article-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 40px;
+}
+.delete-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #b91c1c; cursor: pointer;
+  background: none; border: 1px solid #fca5a5; padding: 7px 16px;
+  border-radius: 3px; transition: all 0.2s; margin: 16px 0;
+}
+.delete-btn:hover { background: #fee2e2; }
+.delete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ══════════════════════════════════════
    MOBILE NAVIGATION
 ══════════════════════════════════════ */
@@ -344,6 +360,10 @@ body {
   /* Story grid — single column */
   .story-grid { grid-template-columns: 1fr; gap: 14px; }
   .story-card-headline { font-size: 16px; }
+
+
+  /* Article actions */
+  .article-actions { padding: 0 20px; }
 
   /* Article */
   .article-hero-wrap { height: 220px; }
@@ -479,7 +499,10 @@ body {
     <img class="article-hero" id="article-img" src="" alt="">
     <div class="article-hero-overlay"></div>
   </div>
-  <button class="back-btn" onclick="goBack()">← Back</button>
+  <div class="article-actions">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <button class="delete-btn" id="delete-btn" onclick="deleteArticle()">Delete Story</button>
+  </div>
   <div class="article-body">
     <span class="story-card-tag" id="article-tag"></span>
     <h1 class="article-headline" id="article-headline"></h1>
@@ -635,30 +658,12 @@ body {
 // ═══════════════════════════════════════════════
 //  SUPABASE CONFIG — paste your values here
 // ═══════════════════════════════════════════════
-const SUPABASE_URL      = 'https://kjazrloguirmpoybkxjy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqYXpybG9ndWlybXBveWJreGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTAzMzEsImV4cCI6MjA5Mzk4NjMzMX0.yeH_od9r7Q7plf1ODir_cwIKE8gSO6vL_CZEwsxLM4g';
+const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 // ═══════════════════════════════════════════════
 
-// Hard timeout — forces loading screen away after 6 seconds no matter what
-const loadingTimeout = setTimeout(() => {
-  hideLoading();
-  articles = [];
-  renderHome();
-  renderTicker();
-  showConfigBanner('Connection timed out. Check your Supabase URL, anon key, and CORS settings.');
-}, 6000);
-
-let db;
-try {
-  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) {
-  clearTimeout(loadingTimeout);
-  hideLoading();
-  articles = [];
-  renderHome();
-  renderTicker();
-  showConfigBanner('Supabase failed to initialise. Check your URL and anon key.');
-}
+let db = null;
+let loadingTimeout = null;
 
 const CATEGORIES = ['Breaking','Politics','Business','Crime','Sports','Weather','World','Tech'];
 const TAG_MAP = {
@@ -816,6 +821,7 @@ function renderAbout() {
 function openArticle(id) {
   const a = articles.find(x => x.id === id);
   if (!a) return;
+  currentArticleId = id;
   const imgEl = document.getElementById('article-img');
   imgEl.src = a.img || '';
   imgEl.style.opacity = a.img ? '0.55' : '0';
@@ -871,10 +877,16 @@ async function submitStory() {
     return;
   }
 
+  // Try to recover db if it failed to init first time
   if (!db) {
-    errEl.textContent = 'Database not connected. Check your Supabase credentials.';
-    errEl.style.display = 'block';
-    return;
+    try {
+      if (typeof supabase === 'undefined') throw new Error('Supabase library not loaded');
+      db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch(e) {
+      errEl.textContent = 'Database not connected: ' + e.message + '. Check your Supabase credentials.';
+      errEl.style.display = 'block';
+      return;
+    }
   }
 
   btn.disabled = true;
@@ -944,6 +956,33 @@ document.getElementById('footer-cats').innerHTML = CATEGORIES.slice(0,5).map(c =
   `<li><a onclick="showPage('category');filterCat('${c.toLowerCase()}')">${c}</a></li>`
 ).join('');
 
+/* ——— DELETE ARTICLE ——— */
+let currentArticleId = null;
+
+async function deleteArticle() {
+  if (!confirm('Are you sure you want to delete this story? This cannot be undone.')) return;
+
+  const btn = document.getElementById('delete-btn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+
+  try {
+    const { error } = await db.from('articles').delete().eq('id', currentArticleId);
+    if (error) throw new Error(error.message);
+
+    // Remove from local array
+    articles = articles.filter(a => a.id !== currentArticleId);
+    renderHome();
+    renderTicker();
+    currentArticleId = null;
+    goBack();
+  } catch(err) {
+    alert('Failed to delete: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Delete Story';
+  }
+}
+
 /* ——— MOBILE MENU ——— */
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
@@ -957,7 +996,33 @@ function closeMobileMenu() {
 }
 
 /* ——— INIT ——— */
-fetchArticles();
+document.addEventListener('DOMContentLoaded', function() {
+  // Render footer cats
+  document.getElementById('footer-cats').innerHTML = CATEGORIES.slice(0,5).map(c =>
+    `<li><a onclick="showPage('category');filterCat('${c.toLowerCase()}')">${c}</a></li>`
+  ).join('');
+
+  // Safety net — force loading screen away after 8 seconds no matter what
+  loadingTimeout = setTimeout(() => {
+    hideLoading();
+    renderHome();
+    renderTicker();
+    showConfigBanner('Connection timed out. Check your Supabase URL, anon key, and CORS settings.');
+  }, 8000);
+
+  // Init Supabase
+  try {
+    if (typeof supabase === 'undefined') throw new Error('Supabase library not loaded');
+    db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    fetchArticles();
+  } catch(e) {
+    clearTimeout(loadingTimeout);
+    hideLoading();
+    renderHome();
+    renderTicker();
+    showConfigBanner('Supabase failed to initialise: ' + e.message);
+  }
+});
 </script>
 </body>
 </html>
