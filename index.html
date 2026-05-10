@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crystal Network News — CNN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --lime: #A3E635;
+  --emerald: #10B981;
+  --blue: #0EA5E9;
+  --fog: #F1F1F1;
+  --charcoal: #1C1C1E;
+  --white: #FFFFFF;
+  --muted: #888;
+  --border: #e5e5e5;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--fog);
+  color: var(--charcoal);
+  min-height: 100vh;
+}
+
+/* ——— NAVBAR ——— */
+.navbar {
+  background: var(--charcoal); height: 64px; display: flex; align-items: center;
+  padding: 0 40px; gap: 40px; position: sticky; top: 0; z-index: 100;
+}
+.navbar-logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.logo-mark {
+  width: 36px; height: 36px; background: var(--emerald); display: flex;
+  align-items: center; justify-content: center; font-family: 'Oswald', sans-serif;
+  font-weight: 700; font-size: 13px; color: white; border-radius: 3px; flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 500;
+  color: var(--fog); letter-spacing: 0.06em; text-transform: uppercase;
+}
+.logo-text span { color: var(--emerald); }
+.navbar-links { display: flex; gap: 28px; flex: 1; justify-content: center; }
+.navbar-links a {
+  font-size: 12px; font-weight: 500; color: rgba(241,241,241,0.55); text-decoration: none;
+  text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: color 0.2s;
+  border-bottom: 2px solid transparent; padding-bottom: 2px;
+}
+.navbar-links a:hover { color: var(--fog); }
+.navbar-links a.active { color: var(--fog); border-bottom-color: var(--lime); }
+.navbar-cta {
+  background: var(--lime); color: var(--charcoal); border: none; padding: 9px 20px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer;
+  border-radius: 3px; text-transform: uppercase; letter-spacing: 0.08em;
+  transition: background 0.2s; white-space: nowrap;
+}
+.navbar-cta:hover { background: #bef264; }
+
+/* ——— TICKER ——— */
+.ticker { background: var(--lime); height: 34px; display: flex; align-items: center; overflow: hidden; }
+.ticker-label {
+  background: var(--emerald); color: white; font-size: 10px; font-weight: 500;
+  padding: 0 16px; height: 100%; display: flex; align-items: center;
+  letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.ticker-track { overflow: hidden; flex: 1; height: 100%; display: flex; align-items: center; }
+.ticker-content {
+  display: flex; white-space: nowrap; font-size: 12px; font-weight: 500;
+  color: var(--charcoal); letter-spacing: 0.02em;
+  animation: ticker-scroll 45s linear infinite;
+}
+.ticker-content span { padding: 0 24px; }
+.ticker-dot { color: var(--emerald); margin: 0 4px; }
+.ticker-empty { font-size: 12px; font-weight: 500; color: rgba(28,28,30,0.45); padding: 0 20px; }
+@keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+/* ——— PAGE SYSTEM ——— */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ——— LOADING OVERLAY ——— */
+.loading-overlay {
+  position: fixed; inset: 0; background: var(--charcoal);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; transition: opacity 0.4s;
+}
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.loading-logo {
+  font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
+  color: white; background: var(--emerald); width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; margin-bottom: 20px;
+}
+.loading-text {
+  font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 400;
+  color: rgba(241,241,241,0.4); text-transform: uppercase; letter-spacing: 0.14em;
+}
+.loading-bar {
+  width: 120px; height: 2px; background: rgba(255,255,255,0.1);
+  border-radius: 2px; margin-top: 16px; overflow: hidden;
+}
+.loading-bar-fill {
+  height: 100%; background: var(--lime); border-radius: 2px;
+  animation: load-fill 1.2s ease-in-out infinite;
+}
+@keyframes load-fill { 0% { width:0%; margin-left:0; } 50% { width:60%; margin-left:20%; } 100% { width:0%; margin-left:100%; } }
+
+/* ——— HERO ——— */
+.hero { position: relative; height: 540px; overflow: hidden; background: var(--charcoal); }
+.hero-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0.5; transition: transform 0.7s ease, opacity 0.3s;
+}
+.hero-clickable:hover .hero-img { transform: scale(1.03); opacity: 0.4; }
+.hero-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, rgba(28,28,30,0.97) 0%, rgba(28,28,30,0.82) 38%, rgba(28,28,30,0.2) 70%, rgba(28,28,30,0.05) 100%);
+}
+.hero-side-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--lime); }
+.hero-content {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 52px 64px; max-width: 700px; cursor: pointer;
+}
+.hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.hero-tag { font-size: 10px; font-weight: 500; padding: 4px 10px; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 2px; }
+.hero-live {
+  display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 500;
+  color: var(--lime); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.live-dot { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.75); } }
+.hero-headline {
+  font-family: 'Oswald', sans-serif; font-size: 54px; font-weight: 600;
+  color: var(--white); line-height: 1.07; margin-bottom: 18px; letter-spacing: -0.5px;
+}
+.hero-meta { font-size: 13px; color: rgba(241,241,241,0.5); display: flex; gap: 10px; align-items: center; margin-bottom: 28px; }
+.hero-meta-sep { color: var(--emerald); }
+.hero-read {
+  display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 500;
+  color: var(--lime); letter-spacing: 0.08em; text-transform: uppercase; transition: gap 0.25s;
+}
+.hero-clickable:hover .hero-read { gap: 16px; }
+.hero-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; padding: 40px;
+}
+.hero-empty-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(241,241,241,0.3); margin-bottom: 14px; }
+.hero-empty-title { font-family: 'Oswald', sans-serif; font-size: 36px; font-weight: 600; color: rgba(241,241,241,0.4); text-transform: uppercase; margin-bottom: 24px; }
+.hero-empty-btn {
+  background: var(--lime); color: var(--charcoal); border: none; padding: 12px 28px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border-radius: 3px;
+}
+.hero-empty-btn:hover { background: #bef264; }
+
+/* ——— SECTION ——— */
+.section { padding: 44px 40px; max-width: 1440px; margin: 0 auto; }
+.section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.section-title { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: var(--charcoal); white-space: nowrap; }
+.section-line { flex: 1; height: 1px; background: var(--border); }
+.section-pill { font-size: 10px; font-weight: 500; color: var(--emerald); border: 1px solid var(--emerald); padding: 3px 10px; border-radius: 100px; letter-spacing: 0.06em; cursor: pointer; white-space: nowrap; transition: all 0.2s; background: none; }
+.section-pill:hover { background: var(--emerald); color: white; }
+
+/* ——— STORY GRID ——— */
+.story-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.story-card { background: var(--white); border-radius: 4px; overflow: hidden; cursor: pointer; border: 0.5px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+.story-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.09); }
+.story-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #ddd; }
+.story-card-body { padding: 14px 16px 18px; }
+.story-card-tag { display: inline-block; font-size: 9px; font-weight: 500; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 9px; }
+.story-card-headline { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 500; line-height: 1.25; color: var(--charcoal); letter-spacing: 0.01em; }
+.story-card-meta { font-size: 11px; color: var(--muted); margin-top: 9px; }
+
+.tag-politics  { background:#e0f2fe; color:#0369a1; }
+.tag-weather   { background:#dbeafe; color:#1d4ed8; }
+.tag-crime     { background:#fee2e2; color:#b91c1c; }
+.tag-sports    { background:#dcfce7; color:#15803d; }
+.tag-business  { background:#fef9c3; color:#854d0e; }
+.tag-breaking  { background:var(--lime); color:var(--charcoal); }
+.tag-world     { background:#f3e8ff; color:#7e22ce; }
+.tag-tech      { background:#e0f7fa; color:#00796b; }
+
+.grid-empty { grid-column:1/-1; text-align:center; padding:80px 40px; color:var(--muted); }
+.grid-empty-title { font-family:'Oswald',sans-serif; font-size:20px; text-transform:uppercase; color:#ccc; margin-bottom:8px; }
+
+/* ——— ARTICLE PAGE ——— */
+.article-hero-wrap { position:relative; height:440px; overflow:hidden; background:var(--charcoal); }
+.article-hero { width:100%; height:100%; object-fit:cover; display:block; }
+.article-hero-overlay { position:absolute; inset:0; background:linear-gradient(to top, rgba(28,28,30,0.9) 0%, rgba(28,28,30,0.2) 60%); }
+.back-btn { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); cursor:pointer; background:none; border:none; padding:20px 40px; transition:color 0.2s; }
+.back-btn:hover { color:var(--charcoal); }
+.article-body { max-width:760px; margin:0 auto; padding:12px 24px 100px; }
+.article-headline { font-family:'Oswald',sans-serif; font-size:46px; font-weight:600; line-height:1.08; color:var(--charcoal); margin-bottom:22px; letter-spacing:-0.3px; }
+.article-byline { display:flex; align-items:center; gap:10px; padding:16px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:36px; font-size:13px; color:var(--muted); }
+.article-author { font-weight:500; color:var(--charcoal); }
+.article-text { font-family:'Lora',serif; font-size:18px; line-height:1.85; color:#2a2a2c; }
+.article-text p { margin-bottom:26px; }
+
+/* ——— SUBMIT PAGE ——— */
+.submit-wrap { max-width:660px; margin:0 auto; padding:60px 24px 100px; }
+.page-title { font-family:'Oswald',sans-serif; font-size:38px; font-weight:600; color:var(--charcoal); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.02em; }
+.page-sub { font-size:14px; color:var(--muted); margin-bottom:44px; }
+.form-group { margin-bottom:24px; }
+.form-label { display:block; font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:8px; }
+.form-input, .form-select, .form-textarea { width:100%; background:var(--white); border:1px solid var(--border); border-radius:3px; padding:13px 15px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--charcoal); transition:border-color 0.2s; outline:none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--emerald); }
+.form-textarea { height:280px; resize:vertical; line-height:1.7; }
+.img-upload-area { width:100%; border:1.5px dashed var(--border); border-radius:3px; background:var(--white); padding:32px; text-align:center; cursor:pointer; transition:border-color 0.2s; position:relative; }
+.img-upload-area:hover { border-color:var(--emerald); }
+.img-upload-area input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.img-upload-icon { font-size:28px; margin-bottom:8px; }
+.img-upload-text { font-size:13px; color:var(--muted); }
+.img-upload-text strong { color:var(--emerald); }
+.img-preview { display:none; width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; margin-top:10px; }
+.img-change-btn { display:none; margin-top:8px; font-size:11px; color:var(--muted); text-decoration:underline; cursor:pointer; background:none; border:none; text-transform:uppercase; letter-spacing:0.06em; }
+.form-submit { width:100%; background:var(--lime); color:var(--charcoal); border:none; padding:16px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; border-radius:3px; transition:background 0.2s, opacity 0.2s; margin-top:8px; }
+.form-submit:hover { background:#bef264; }
+.form-submit:disabled { opacity:0.5; cursor:not-allowed; background:var(--lime); }
+.submit-success { display:none; text-align:center; padding:60px 40px; background:var(--white); border-radius:4px; border:1px solid var(--border); }
+.success-icon { width:60px; height:60px; background:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:24px; color:white; }
+.submit-success h3 { font-family:'Oswald',sans-serif; font-size:28px; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:8px; }
+.submit-success p { font-size:14px; color:var(--muted); }
+.error-banner { background:#fee2e2; border:1px solid #fca5a5; color:#b91c1c; padding:12px 16px; border-radius:3px; font-size:13px; margin-bottom:16px; display:none; }
+
+/* ——— CATEGORY PAGE ——— */
+.category-header { background:var(--charcoal); padding:48px 40px 40px; }
+.category-header-inner { max-width:1440px; margin:0 auto; }
+.category-eyebrow { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.14em; color:rgba(241,241,241,0.4); margin-bottom:10px; }
+.category-name { font-family:'Oswald',sans-serif; font-size:48px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:-0.5px; margin-bottom:28px; }
+.category-pills { display:flex; gap:10px; flex-wrap:wrap; }
+.cat-pill { padding:7px 18px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); font-size:12px; font-weight:500; color:rgba(241,241,241,0.6); background:transparent; cursor:pointer; transition:all 0.15s; }
+.cat-pill:hover { border-color:var(--lime); color:var(--lime); }
+.cat-pill.active { background:var(--lime); border-color:var(--lime); color:var(--charcoal); }
+.category-grid-wrap { max-width:1440px; margin:0 auto; padding:40px; }
+
+/* ——— ABOUT PAGE ——— */
+.about-hero { background:var(--charcoal); padding:88px 40px; text-align:center; position:relative; overflow:hidden; }
+.about-hero-bg { position:absolute; inset:0; background:repeating-linear-gradient(90deg, rgba(163,230,53,0.03) 0px, rgba(163,230,53,0.03) 1px, transparent 1px, transparent 80px); }
+.about-hero-tag { display:inline-block; background:var(--lime); color:var(--charcoal); font-size:10px; font-weight:500; padding:4px 12px; letter-spacing:0.14em; text-transform:uppercase; border-radius:2px; margin-bottom:22px; position:relative; }
+.about-hero-title { font-family:'Oswald',sans-serif; font-size:72px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:-1px; line-height:1; position:relative; }
+.about-hero-title span { color:var(--emerald); }
+.about-hero-sub { font-family:'Lora',serif; font-style:italic; font-size:18px; color:rgba(241,241,241,0.45); margin-top:20px; position:relative; }
+.about-body { max-width:900px; margin:0 auto; padding:72px 40px 100px; }
+.about-section { margin-bottom:64px; }
+.about-label { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.14em; color:var(--emerald); margin-bottom:10px; }
+.about-title { font-family:'Oswald',sans-serif; font-size:30px; font-weight:600; color:var(--charcoal); text-transform:uppercase; margin-bottom:18px; letter-spacing:0.02em; }
+.about-text { font-family:'Lora',serif; font-size:17px; line-height:1.85; color:#3a3a3c; }
+.about-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:8px; }
+.stat-card { background:var(--white); border:0.5px solid var(--border); border-radius:4px; padding:28px 24px; text-align:center; }
+.stat-number { font-family:'Oswald',sans-serif; font-size:48px; font-weight:700; color:var(--emerald); line-height:1; margin-bottom:8px; }
+.stat-label { font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); }
+
+/* ——— FOOTER ——— */
+.footer { background:var(--charcoal); padding:56px 40px 32px; margin-top:80px; }
+.footer-inner { max-width:1440px; margin:0 auto; display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:40px; padding-bottom:48px; border-bottom:1px solid rgba(255,255,255,0.07); }
+.footer-brand-name { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; color:var(--fog); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px; }
+.footer-brand-name span { color:var(--emerald); }
+.footer-tagline { font-family:'Lora',serif; font-style:italic; font-size:13px; color:rgba(241,241,241,0.35); line-height:1.6; margin-top:10px; }
+.footer-col-title { font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:0.14em; color:rgba(241,241,241,0.35); margin-bottom:18px; }
+.footer-links { list-style:none; }
+.footer-links li { margin-bottom:12px; }
+.footer-links a { font-size:13px; color:rgba(241,241,241,0.55); text-decoration:none; cursor:pointer; transition:color 0.2s; }
+.footer-links a:hover { color:var(--lime); }
+.footer-bottom { max-width:1440px; margin:28px auto 0; display:flex; justify-content:space-between; align-items:center; }
+.footer-copy { font-size:11px; color:rgba(241,241,241,0.25); }
+.footer-live { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:500; color:var(--lime); letter-spacing:0.1em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-logo">CNN</div>
+  <div class="loading-text">Loading the newsroom...</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-logo" onclick="showPage('home')">
+    <div class="logo-mark">CNN</div>
+    <div class="logo-text">Crystal <span>Network</span> News</div>
+  </div>
+  <div class="navbar-links">
+    <a id="nav-home" class="active" onclick="showPage('home')">Home</a>
+    <a id="nav-category" onclick="showPage('category')">Categories</a>
+    <a id="nav-about" onclick="showPage('about')">About</a>
+  </div>
+  <button class="navbar-cta" onclick="showPage('submit')">+ Submit a Story</button>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-label">Breaking</div>
+  <div class="ticker-track">
+    <div class="ticker-content" id="ticker-content"></div>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <img class="hero-img" id="hero-img" src="" alt="">
+    <div class="hero-gradient"></div>
+    <div class="hero-side-bar"></div>
+    <div class="hero-content hero-clickable" id="hero-filled" style="display:none;" onclick="openHeroArticle()">
+      <div class="hero-eyebrow">
+        <span class="story-card-tag hero-tag" id="hero-tag"></span>
+        <div class="hero-live"><div class="live-dot"></div>Latest Story</div>
+      </div>
+      <h1 class="hero-headline" id="hero-headline"></h1>
+      <div class="hero-meta">
+        <span id="hero-author"></span>
+        <span class="hero-meta-sep">◆</span>
+        <span id="hero-date"></span>
+      </div>
+      <span class="hero-read">Read Full Story →</span>
+    </div>
+    <div class="hero-empty" id="hero-empty">
+      <div class="hero-empty-label">The Republic of Amplon's Independent News Network</div>
+      <div class="hero-empty-title">No Stories Filed Yet</div>
+      <button class="hero-empty-btn" onclick="showPage('submit')">+ File the First Story</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Latest Stories</span>
+      <div class="section-line"></div>
+      <button class="section-pill" onclick="showPage('category')">View All →</button>
+    </div>
+    <div class="story-grid" id="home-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ ARTICLE ═══ -->
+<div class="page" id="page-article">
+  <div class="article-hero-wrap">
+    <img class="article-hero" id="article-img" src="" alt="">
+    <div class="article-hero-overlay"></div>
+  </div>
+  <button class="back-btn" onclick="goBack()">← Back</button>
+  <div class="article-body">
+    <span class="story-card-tag" id="article-tag"></span>
+    <h1 class="article-headline" id="article-headline"></h1>
+    <div class="article-byline">
+      <span>By</span>
+      <span class="article-author" id="article-author"></span>
+      <span>·</span>
+      <span id="article-date"></span>
+    </div>
+    <div class="article-text" id="article-text"></div>
+  </div>
+</div>
+
+<!-- ═══ SUBMIT ═══ -->
+<div class="page" id="page-submit">
+  <div class="submit-wrap">
+    <h2 class="page-title">File a Story</h2>
+    <p class="page-sub">Submit your report to Crystal Network News for immediate publication across Amplon.</p>
+    <div id="submit-form-wrap">
+      <div class="error-banner" id="submit-error"></div>
+      <div class="form-group">
+        <label class="form-label">Reporter Name</label>
+        <input type="text" class="form-input" id="field-name" placeholder="Your name or alias">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Headline</label>
+        <input type="text" class="form-input" id="field-headline" placeholder="A clear, punchy headline">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="field-category">
+          <option value="">Select a category...</option>
+          <option value="breaking">Breaking</option>
+          <option value="politics">Politics</option>
+          <option value="business">Business</option>
+          <option value="crime">Crime</option>
+          <option value="sports">Sports</option>
+          <option value="weather">Weather</option>
+          <option value="world">World</option>
+          <option value="tech">Tech</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Story Image <span style="color:#bbb;font-size:9px;letter-spacing:0;">(optional)</span></label>
+        <div class="img-upload-area">
+          <input type="file" accept="image/*" id="field-image" onchange="handleImageUpload(this)">
+          <div id="upload-placeholder">
+            <div class="img-upload-icon">🖼</div>
+            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop<br>JPG, PNG, WEBP — keep under 1MB for best results</div>
+          </div>
+          <img class="img-preview" id="img-preview" src="" alt="Preview">
+        </div>
+        <button class="img-change-btn" id="img-change-btn" onclick="resetImage()">✕ Remove image</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Story</label>
+        <textarea class="form-textarea" id="field-body" placeholder="Write your full report here. Separate paragraphs with a blank line."></textarea>
+      </div>
+      <button class="form-submit" id="submit-btn" onclick="submitStory()">Publish Story</button>
+    </div>
+    <div class="submit-success" id="submit-success">
+      <div class="success-icon">✓</div>
+      <h3>Story Published</h3>
+      <p>Your report is now live on Crystal Network News.</p>
+      <br>
+      <button class="form-submit" style="width:auto;padding:12px 28px;margin-top:8px;" onclick="resetSubmit()">File Another Story</button>
+      <button class="form-submit" style="width:auto;padding:12px 28px;margin-top:8px;margin-left:8px;background:var(--charcoal);color:var(--fog);" onclick="showPage('home')">Go to Homepage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CATEGORY ═══ -->
+<div class="page" id="page-category">
+  <div class="category-header">
+    <div class="category-header-inner">
+      <div class="category-eyebrow">Browse by category</div>
+      <div class="category-name" id="cat-name">All Stories</div>
+      <div class="category-pills" id="cat-pills"></div>
+    </div>
+  </div>
+  <div class="category-grid-wrap">
+    <div class="story-grid" id="cat-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ ABOUT ═══ -->
+<div class="page" id="page-about">
+  <div class="about-hero">
+    <div class="about-hero-bg"></div>
+    <div class="about-hero-tag">The Republic of Amplon</div>
+    <h1 class="about-hero-title">Crystal <span>Network</span> News</h1>
+    <p class="about-hero-sub">"Your world, reported."</p>
+  </div>
+  <div class="about-body">
+    <div class="about-section">
+      <div class="about-label">Network at a Glance</div>
+      <div class="about-stats" id="about-stats"></div>
+    </div>
+    <div class="about-section">
+      <div class="about-label">Our Mission</div>
+      <div class="about-title">Amplon's Independent Voice</div>
+      <p class="about-text">Crystal Network News is the Republic of Amplon's most trusted independent news organisation. Founded to bring clarity to a complex world, CNN delivers breaking stories, in-depth reports, and live coverage from across Amplon and beyond.<br><br>Our reporters are embedded throughout the Republic, providing real-time coverage of the events that shape our nation — from the halls of government to the streets of every district. We believe every story deserves to be told, and told well.</p>
+    </div>
+    <div class="about-section">
+      <div class="about-label">Submissions</div>
+      <div class="about-title">Report a Story</div>
+      <p class="about-text">Crystal Network News is a community-driven network open to all citizens of Amplon. Anyone can file a report — provide your name, a headline, a category, and your story. An image is optional but encouraged. We publish all community submissions in real time.</p>
+      <br>
+      <button class="form-submit" style="width:auto;padding:12px 28px;margin-top:16px;" onclick="showPage('submit')">Submit a Story →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand-name">Crystal <span>Network</span> News</div>
+      <div class="logo-mark" style="margin-top:10px;">CNN</div>
+      <p class="footer-tagline">"Your world, reported."<br>The Republic of Amplon's independent voice.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a onclick="showPage('home')">Home</a></li>
+        <li><a onclick="showPage('category')">Categories</a></li>
+        <li><a onclick="showPage('about')">About</a></li>
+        <li><a onclick="showPage('submit')">Submit a Story</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Categories</div>
+      <ul class="footer-links" id="footer-cats"></ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Network</div>
+      <ul class="footer-links">
+        <li><a onclick="showPage('about')">About CNN</a></li>
+        <li><a onclick="showPage('about')">Newsroom</a></li>
+        <li><a onclick="showPage('submit')">File a Report</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© Crystal Network News — The Republic of Amplon. All rights reserved.</span>
+    <div class="footer-live"><div class="live-dot"></div>Live Broadcast</div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════
+//  SUPABASE CONFIG — paste your values here
+// ═══════════════════════════════════════════════
+const SUPABASE_URL      = 'https://kjazrloguirmpoybkxjy.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_GTQDs-lBGg_NKbg0RqnLkA_84fKlrUq';
+// ═══════════════════════════════════════════════
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const CATEGORIES = ['Breaking','Politics','Business','Crime','Sports','Weather','World','Tech'];
+const TAG_MAP = {
+  politics:'tag-politics', weather:'tag-weather', crime:'tag-crime',
+  sports:'tag-sports', business:'tag-business', breaking:'tag-breaking',
+  world:'tag-world', tech:'tag-tech'
+};
+
+let articles = [];
+let pendingImageData = null;
+let prevPage = 'home';
+
+/* ——— HELPERS ——— */
+function tagClass(cat) { return TAG_MAP[(cat||'').toLowerCase()] || 'tag-breaking'; }
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+    + ' at '
+    + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+function noImgPlaceholder() {
+  return `<div class="story-card-img" style="background:var(--charcoal);display:flex;align-items:center;justify-content:center;">
+    <span style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(241,241,241,0.15);">No Image</span>
+  </div>`;
+}
+
+function buildCard(a) {
+  const imgHtml = a.img
+    ? `<img class="story-card-img" src="${a.img}" alt="" loading="lazy">`
+    : noImgPlaceholder();
+  return `<div class="story-card" onclick="openArticle(${a.id})">
+    ${imgHtml}
+    <div class="story-card-body">
+      <span class="story-card-tag ${tagClass(a.category)}">${a.category}</span>
+      <div class="story-card-headline">${a.headline}</div>
+      <div class="story-card-meta">By ${a.author} · ${formatDate(a.ts)}</div>
+    </div>
+  </div>`;
+}
+
+/* ——— FETCH FROM SUPABASE ——— */
+async function fetchArticles() {
+  const { data, error } = await db
+    .from('articles')
+    .select('*')
+    .order('ts', { ascending: false });
+  if (error) {
+    console.error('Failed to load articles:', error.message);
+    articles = [];
+  } else {
+    articles = data || [];
+  }
+  renderHome();
+  renderTicker();
+  hideLoading();
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.style.display = 'none', 400);
+}
+
+/* ——— TICKER ——— */
+function renderTicker() {
+  const el = document.getElementById('ticker-content');
+  if (articles.length === 0) {
+    el.style.animation = 'none';
+    el.innerHTML = `<span class="ticker-empty">No stories filed yet — be the first to report from Amplon.</span>`;
+    return;
+  }
+  const latest = articles.slice(0, 3);
+  const doubled = [...latest, ...latest];
+  el.style.animation = 'ticker-scroll 45s linear infinite';
+  el.innerHTML = doubled.map(a =>
+    `<span>${a.headline}<span class="ticker-dot"> ◆ </span></span>`
+  ).join('');
+}
+
+/* ——— HOME ——— */
+function renderHome() {
+  if (articles.length === 0) {
+    document.getElementById('hero-filled').style.display = 'none';
+    document.getElementById('hero-empty').style.display  = 'flex';
+    document.getElementById('hero-img').src = '';
+  } else {
+    const h = articles[0];
+    document.getElementById('hero-empty').style.display  = 'none';
+    document.getElementById('hero-filled').style.display = 'flex';
+    document.getElementById('hero-img').src = h.img || '';
+    document.getElementById('hero-img').style.opacity = h.img ? '0.5' : '0';
+    document.getElementById('hero-tag').textContent = h.category;
+    document.getElementById('hero-tag').className = `story-card-tag hero-tag ${tagClass(h.category)}`;
+    document.getElementById('hero-headline').textContent = h.headline;
+    document.getElementById('hero-author').textContent = h.author;
+    document.getElementById('hero-date').textContent = formatDate(h.ts);
+  }
+  const rest = articles.slice(1);
+  document.getElementById('home-grid').innerHTML = rest.length
+    ? rest.map(buildCard).join('')
+    : `<div class="grid-empty"><div class="grid-empty-title">No further stories yet</div>Submit a story to get the newsroom started.</div>`;
+}
+
+/* ——— CATEGORY ——— */
+function renderCategoryPage(filter) {
+  filter = filter || 'all';
+  const allCats = ['all', ...CATEGORIES.map(c => c.toLowerCase())];
+  document.getElementById('cat-name').textContent =
+    filter === 'all' ? 'All Stories' : filter.charAt(0).toUpperCase() + filter.slice(1);
+  document.getElementById('cat-pills').innerHTML = allCats.map(c =>
+    `<button class="cat-pill ${c===filter?'active':''}" onclick="filterCat('${c}')">${c==='all'?'All':c.charAt(0).toUpperCase()+c.slice(1)}</button>`
+  ).join('');
+  const list = filter === 'all' ? articles : articles.filter(a => (a.category||'').toLowerCase() === filter);
+  document.getElementById('cat-grid').innerHTML = list.length
+    ? list.map(buildCard).join('')
+    : `<div class="grid-empty" style="grid-column:1/-1"><div class="grid-empty-title">No Stories Yet</div>Nothing filed in this category.</div>`;
+}
+function filterCat(f) { renderCategoryPage(f); }
+
+/* ——— ABOUT ——— */
+function renderAbout() {
+  document.getElementById('about-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-number">${articles.length}</div><div class="stat-label">Stories Published</div></div>
+    <div class="stat-card"><div class="stat-number">${new Set(articles.map(a=>a.author)).size||0}</div><div class="stat-label">Active Reporters</div></div>
+    <div class="stat-card"><div class="stat-number">${CATEGORIES.length}</div><div class="stat-label">Coverage Areas</div></div>`;
+}
+
+/* ——— ARTICLE ——— */
+function openArticle(id) {
+  const a = articles.find(x => x.id === id);
+  if (!a) return;
+  const imgEl = document.getElementById('article-img');
+  imgEl.src = a.img || '';
+  imgEl.style.opacity = a.img ? '0.55' : '0';
+  document.getElementById('article-tag').textContent = a.category;
+  document.getElementById('article-tag').className = `story-card-tag ${tagClass(a.category)}`;
+  document.getElementById('article-headline').textContent = a.headline;
+  document.getElementById('article-author').textContent = a.author;
+  document.getElementById('article-date').textContent = formatDate(a.ts);
+  document.getElementById('article-text').innerHTML =
+    (a.body||'').split(/\n\n+/).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  prevPage = document.querySelector('.page.active').id.replace('page-','');
+  showPage('article');
+}
+function openHeroArticle() { if (articles.length) openArticle(articles[0].id); }
+function goBack() { showPage(prevPage); }
+
+/* ——— IMAGE UPLOAD ——— */
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    pendingImageData = e.target.result;
+    document.getElementById('img-preview').src = pendingImageData;
+    document.getElementById('img-preview').style.display = 'block';
+    document.getElementById('upload-placeholder').style.display = 'none';
+    document.getElementById('img-change-btn').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+function resetImage() {
+  pendingImageData = null;
+  document.getElementById('field-image').value = '';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  document.getElementById('img-change-btn').style.display = 'none';
+}
+
+/* ——— SUBMIT ——— */
+async function submitStory() {
+  const name     = document.getElementById('field-name').value.trim();
+  const headline = document.getElementById('field-headline').value.trim();
+  const category = document.getElementById('field-category').value;
+  const body     = document.getElementById('field-body').value.trim();
+  const errEl    = document.getElementById('submit-error');
+
+  errEl.style.display = 'none';
+
+  if (!name || !headline || !category || !body) {
+    errEl.textContent = 'Please fill in all required fields before submitting.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Publishing...';
+
+  const newArticle = {
+    headline, category, author: name,
+    ts: Date.now(),
+    img: pendingImageData || null,
+    body
+  };
+
+  const { data, error } = await db.from('articles').insert([newArticle]).select();
+
+  if (error) {
+    errEl.textContent = 'Failed to publish story. Please check your connection and try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Publish Story';
+    return;
+  }
+
+  articles.unshift(data[0]);
+  renderHome();
+  renderTicker();
+  btn.disabled = false;
+  btn.textContent = 'Publish Story';
+  document.getElementById('submit-form-wrap').style.display = 'none';
+  document.getElementById('submit-success').style.display = 'block';
+}
+
+function resetSubmit() {
+  ['field-name','field-headline','field-body'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('field-category').value = '';
+  document.getElementById('submit-error').style.display = 'none';
+  resetImage();
+  document.getElementById('submit-form-wrap').style.display = 'block';
+  document.getElementById('submit-success').style.display = 'none';
+}
+
+/* ——— NAV ——— */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.navbar-links a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById('nav-'+name);
+  if (el) el.classList.add('active');
+  if (name === 'category') renderCategoryPage();
+  if (name === 'about')    renderAbout();
+  window.scrollTo(0,0);
+}
+
+/* ——— FOOTER CATS ——— */
+document.getElementById('footer-cats').innerHTML = CATEGORIES.slice(0,5).map(c =>
+  `<li><a onclick="showPage('category');filterCat('${c.toLowerCase()}')">${c}</a></li>`
+).join('');
+
+/* ——— INIT ——— */
+fetchArticles();
+</script>
+</body>
+</html>
