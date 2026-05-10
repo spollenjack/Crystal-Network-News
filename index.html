@@ -500,7 +500,26 @@ const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 // ═══════════════════════════════════════════════
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Hard timeout — forces loading screen away after 6 seconds no matter what
+const loadingTimeout = setTimeout(() => {
+  hideLoading();
+  articles = [];
+  renderHome();
+  renderTicker();
+  showConfigBanner('Connection timed out. Check your Supabase URL, anon key, and CORS settings.');
+}, 6000);
+
+let db;
+try {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  clearTimeout(loadingTimeout);
+  hideLoading();
+  articles = [];
+  renderHome();
+  renderTicker();
+  showConfigBanner('Supabase failed to initialise. Check your URL and anon key.');
+}
 
 const CATEGORIES = ['Breaking','Politics','Business','Crime','Sports','Weather','World','Tech'];
 const TAG_MAP = {
@@ -545,6 +564,7 @@ function buildCard(a) {
 
 /* ——— FETCH FROM SUPABASE ——— */
 async function fetchArticles() {
+  if (!db) return;
   try {
     const { data, error } = await db
       .from('articles')
@@ -552,13 +572,15 @@ async function fetchArticles() {
       .order('ts', { ascending: false });
     if (error) throw new Error(error.message);
     articles = data || [];
+    clearTimeout(loadingTimeout);
   } catch (err) {
     console.error('Failed to load articles:', err.message);
     articles = [];
-    // Show a banner if credentials look like placeholders
-    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-      showConfigBanner();
-    }
+    clearTimeout(loadingTimeout);
+    const msg = SUPABASE_URL === 'YOUR_SUPABASE_URL'
+      ? 'Supabase credentials not set. Paste your URL and anon key into the HTML file.'
+      : 'Could not reach Supabase. Check your CORS settings and that the articles table exists.';
+    showConfigBanner(msg);
   } finally {
     renderHome();
     renderTicker();
@@ -572,18 +594,18 @@ function hideLoading() {
   setTimeout(() => overlay.style.display = 'none', 400);
 }
 
-function showConfigBanner() {
+function showConfigBanner(msg) {
   const banner = document.createElement('div');
   banner.style.cssText = `
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:var(--charcoal); color:var(--fog); padding:14px 24px;
     border-radius:4px; font-size:13px; z-index:200;
-    border-left:4px solid var(--lime); max-width:480px; text-align:center;
+    border-left:4px solid var(--lime); max-width:520px; text-align:center; line-height:1.5;
     box-shadow:0 8px 24px rgba(0,0,0,0.3);
   `;
-  banner.innerHTML = `⚠️ &nbsp;Supabase credentials not set. Open the HTML file and paste your <strong>SUPABASE_URL</strong> and <strong>SUPABASE_ANON_KEY</strong>.`;
+  banner.innerHTML = `⚠️ &nbsp;${msg}`;
   document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 8000);
+  setTimeout(() => banner.remove(), 10000);
 }
 
 /* ——— TICKER ——— */
