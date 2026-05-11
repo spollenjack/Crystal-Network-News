@@ -462,7 +462,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
     <img class="article-hero" id="article-img" src="" alt="">
     <div class="article-hero-overlay"></div>
     <div class="archive-hero-banner" id="archive-hero-banner">
-      <span style="font-size:32px;">🗃</span>
+      <div style="width:64px;height:64px;background:rgba(163,230,53,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:white;letter-spacing:1px;margin-bottom:4px;">CNN</div>
       <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:rgba(163,230,53,0.6);">Archived Article</span>
       <span style="font-size:12px;color:rgba(241,241,241,0.3);">Image removed to conserve storage</span>
     </div>
@@ -637,11 +637,12 @@ function tagClass(cat){return TAG_MAP[(cat||'').toLowerCase()]||'tag-breaking';}
 function formatDate(ts){const d=new Date(ts);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' at '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
 function formatViews(n){return n>=1000?(n/1000).toFixed(1)+'k':n;}
 function noImgPlaceholder(archived){
-  const label=archived?'Archived':'No Image';
-  const col=archived?'rgba(163,230,53,0.2)':'rgba(241,241,241,0.15)';
-  const border=archived?'border-top:2px solid rgba(163,230,53,0.3);':'';  return '<div class="story-card-img" style="background:var(--charcoal);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;'+border+'">'+
-    (archived?'<span style="font-size:14px;">🗃</span>':'')+
-    '<span style="font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:'+col+'">'+label+'</span></div>';}
+  const border=archived?'border-top:2px solid rgba(163,230,53,0.4);':'';  const logoCol=archived?'rgba(163,230,53,0.35)':'rgba(255,255,255,0.12)';
+  const textCol=archived?'rgba(163,230,53,0.5)':'rgba(255,255,255,0.2)';
+  return '<div class="story-card-img" style="background:var(--charcoal);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;'+border+'">'+
+    '<div style="width:44px;height:44px;background:'+logoCol+';border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:\'Oswald\',sans-serif;font-weight:700;font-size:14px;color:white;letter-spacing:0.5px;">CNN</div>'+
+    (archived?'<span style="font-family:\'Oswald\',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:'+textCol+';">Archived</span>':'')+
+    '</div>';}
 function buildCard(a){
   const imgHtml=a.img?'<img class="story-card-img" src="'+a.img+'" alt="" loading="lazy">':noImgPlaceholder(a.archived);
   return '<div class="story-card" onclick="openArticle('+a.id+')">'+imgHtml+
