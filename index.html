@@ -818,12 +818,23 @@ async function saveEdit(){
   const updatedImg=editImageData!==null?editImageData:(editKeepExistingImg?(a.img||null):null);
   const updates={headline,category,body,img:updatedImg};
   try{
-    const{error}=await db.from('articles').update(updates).eq('id',currentArticleId);
+    const{data,error}=await db.from('articles').update(updates).eq('id',currentArticleId).select();
     if(error)throw new Error(error.message);
+    // Update local array
     articles=articles.map(x=>x.id===currentArticleId?{...x,...updates}:x);
+    // Re-render article page directly without calling openArticle (avoids view increment)
     const updated=articles.find(x=>x.id===currentArticleId);
-    openArticle(currentArticleId);
-    renderHome();renderTicker();
+    const imgEl=document.getElementById('article-img');
+    const archBanner=document.getElementById('archive-hero-banner');
+    if(updated.img){imgEl.src=updated.img;imgEl.style.opacity='0.55';archBanner.style.display='none';}
+    else{imgEl.src='';imgEl.style.opacity='0';archBanner.style.display=updated.archived?'flex':'none';}
+    document.getElementById('article-tag').textContent=updated.category;
+    document.getElementById('article-tag').className='story-card-tag '+tagClass(updated.category);
+    document.getElementById('article-headline').textContent=updated.headline;
+    document.getElementById('article-text').innerHTML=(updated.body||'').split(/\n\n+/).map(p=>'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('');
+    renderRelatedArticles(updated);
+    renderHome();
+    renderTicker();
     closeEditModal();
   }catch(err){errEl.textContent='Save failed: '+err.message;errEl.style.display='block';}
   finally{btn.disabled=false;btn.textContent='Save Changes';}
