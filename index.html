@@ -310,6 +310,45 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
   .footer-inner{grid-template-columns:1fr;gap:24px;}
   .category-name{font-size:26px;}
 }
+
+/* LIKE / DISLIKE */
+.article-reactions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+.reaction-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.reaction-btn:hover { border-color: var(--charcoal); color: var(--charcoal); }
+.reaction-btn.liked { background: #dcfce7; border-color: #10B981; color: #15803d; }
+.reaction-btn.disliked { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+.reaction-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 </style>
 </head>
 <body>
@@ -485,6 +524,15 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
       <div class="article-views">👁 <span id="article-views">0</span></div>
     </div>
     <div class="article-text" id="article-text"></div>
+    <div class="article-reactions">
+      <span class="reaction-label">Reactions</span>
+      <button class="reaction-btn" id="like-btn" onclick="reactToArticle('like')">
+        👍 <span id="like-count">0</span>
+      </button>
+      <button class="reaction-btn" id="dislike-btn" onclick="reactToArticle('dislike')">
+        👎 <span id="dislike-count">0</span>
+      </button>
+    </div>
   </div>
   <div class="related-section" id="related-section" style="display:none;">
     <div class="section-header">
@@ -656,7 +704,7 @@ async function fetchArticles(){
   try{
     const{data,error}=await db.from('articles').select('*').order('ts',{ascending:false});
     if(error)throw new Error(error.message);
-    articles=(data||[]).map(a=>({...a,archived:a.archived??false,views:a.views??0}));
+    articles=(data||[]).map(a=>({...a,archived:a.archived??false,views:a.views??0,likes:a.likes??0,dislikes:a.dislikes??0}));
     newestTs=articles.length?articles[0].ts:0;
     clearTimeout(loadingTimeout);
   }catch(err){
@@ -755,6 +803,7 @@ function openArticle(id){
   document.getElementById('article-author').textContent=a.author;
   document.getElementById('article-date').textContent=formatDate(a.ts);
   document.getElementById('article-views').textContent=formatViews(a.views||0);
+  updateReactionUI(a);
   document.getElementById('article-text').innerHTML=(a.body||'').split(/\n\n+/).map(p=>'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('');
   renderRelatedArticles(a);
   prevPage=document.querySelector('.page.active').id.replace('page-','');
@@ -835,9 +884,61 @@ async function saveEdit(){
     renderRelatedArticles(updated);
     renderHome();
     renderTicker();
+    updateReactionUI(articles.find(x=>x.id===currentArticleId)||{likes:0,dislikes:0});
     closeEditModal();
   }catch(err){errEl.textContent='Save failed: '+err.message;errEl.style.display='block';}
   finally{btn.disabled=false;btn.textContent='Save Changes';}
+}
+
+/* REACTIONS */
+function getUserReaction(id) {
+  try { return JSON.parse(localStorage.getItem('cnn_reaction_' + id) || 'null'); }
+  catch(e) { return null; }
+}
+function setUserReaction(id, reaction) {
+  try { localStorage.setItem('cnn_reaction_' + id, JSON.stringify(reaction)); }
+  catch(e) {}
+}
+function updateReactionUI(a) {
+  const userReaction = getUserReaction(a.id);
+  const likeBtn = document.getElementById('like-btn');
+  const dislikeBtn = document.getElementById('dislike-btn');
+  const likeCount = document.getElementById('like-count');
+  const dislikeCount = document.getElementById('dislike-count');
+  if (!likeBtn || !dislikeBtn) return;
+  likeCount.textContent = a.likes || 0;
+  dislikeCount.textContent = a.dislikes || 0;
+  likeBtn.className = 'reaction-btn' + (userReaction === 'like' ? ' liked' : '');
+  dislikeBtn.className = 'reaction-btn' + (userReaction === 'dislike' ? ' disliked' : '');
+}
+async function reactToArticle(type) {
+  if (!db || !currentArticleId) return;
+  const likeBtn = document.getElementById('like-btn');
+  const dislikeBtn = document.getElementById('dislike-btn');
+  likeBtn.disabled = true; dislikeBtn.disabled = true;
+  const a = articles.find(x => x.id === currentArticleId);
+  if (!a) return;
+  const prev = getUserReaction(currentArticleId);
+  let likes = a.likes || 0;
+  let dislikes = a.dislikes || 0;
+  // Undo previous reaction
+  if (prev === 'like') likes = Math.max(0, likes - 1);
+  if (prev === 'dislike') dislikes = Math.max(0, dislikes - 1);
+  // Apply new reaction (toggle off if same)
+  const newReaction = prev === type ? null : type;
+  if (newReaction === 'like') likes++;
+  if (newReaction === 'dislike') dislikes++;
+  try {
+    const { error } = await db.from('articles').update({ likes, dislikes }).eq('id', currentArticleId);
+    if (error) throw new Error(error.message);
+    setUserReaction(currentArticleId, newReaction);
+    articles = articles.map(x => x.id === currentArticleId ? { ...x, likes, dislikes } : x);
+    updateReactionUI({ ...a, likes, dislikes });
+  } catch(err) {
+    console.error('Reaction error:', err.message);
+  } finally {
+    likeBtn.disabled = false; dislikeBtn.disabled = false;
+  }
 }
 
 /* IMAGE UPLOAD */
