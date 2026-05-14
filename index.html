@@ -349,6 +349,97 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
 .reaction-btn.disliked { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
 .reaction-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+
+/* ——— ARCHIVE PAGE ——— */
+.archive-header {
+  background: var(--charcoal);
+  padding: 48px 40px 40px;
+}
+.archive-header-inner { max-width: 1440px; margin: 0 auto; }
+.archive-eyebrow {
+  font-size: 10px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.14em; color: rgba(241,241,241,0.4); margin-bottom: 10px;
+}
+.archive-title {
+  font-family: 'Oswald', sans-serif; font-size: 48px; font-weight: 700;
+  color: var(--white); text-transform: uppercase; letter-spacing: -0.5px; margin-bottom: 12px;
+}
+.archive-sub { font-size: 14px; color: rgba(241,241,241,0.4); max-width: 560px; line-height: 1.6; }
+.archive-body { max-width: 1440px; margin: 0 auto; padding: 44px 40px 100px; }
+.archive-upload-area {
+  background: var(--white); border: 1px solid var(--border); border-radius: 4px;
+  padding: 32px; margin-bottom: 48px;
+}
+.archive-upload-title {
+  font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--charcoal); margin-bottom: 20px;
+}
+.archive-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.archive-form-full { grid-column: 1 / -1; }
+.archive-submit {
+  grid-column: 1 / -1; background: var(--lime); color: var(--charcoal); border: none;
+  padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 3px;
+  transition: background 0.2s; margin-top: 4px;
+}
+.archive-submit:hover { background: #bef264; }
+.archive-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.archive-list-title {
+  font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--charcoal);
+  margin-bottom: 20px; display: flex; align-items: center; gap: 14px;
+}
+.archive-list-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.archive-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.archive-card {
+  background: var(--white); border: 0.5px solid var(--border); border-radius: 4px;
+  padding: 24px; display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow 0.2s;
+}
+.archive-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.archive-card-icon {
+  width: 40px; height: 40px; background: var(--fog); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.archive-card-title {
+  font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 500;
+  color: var(--charcoal); letter-spacing: 0.01em; line-height: 1.3;
+}
+.archive-card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; flex: 1; }
+.archive-card-meta { font-size: 11px; color: var(--muted); }
+.archive-card-actions { display: flex; gap: 8px; margin-top: 4px; }
+.archive-download-btn {
+  flex: 1; background: var(--charcoal); color: var(--fog); border: none;
+  padding: 10px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border-radius: 3px;
+  transition: background 0.2s; text-align: center; text-decoration: none; display: flex;
+  align-items: center; justify-content: center; gap: 6px;
+}
+.archive-download-btn:hover { background: var(--emerald); }
+.archive-delete-btn {
+  background: none; border: 1px solid #fca5a5; color: #b91c1c; padding: 10px 12px;
+  font-size: 12px; cursor: pointer; border-radius: 3px; transition: all 0.2s;
+}
+.archive-delete-btn:hover { background: #fee2e2; }
+.archive-empty {
+  grid-column: 1 / -1; text-align: center; padding: 80px 40px; color: var(--muted);
+}
+.archive-empty-title {
+  font-family: 'Oswald', sans-serif; font-size: 20px; text-transform: uppercase;
+  color: #ccc; margin-bottom: 8px;
+}
+.archive-error { background:#fee2e2; border:1px solid #fca5a5; color:#b91c1c; padding:12px 16px; border-radius:3px; font-size:13px; margin-bottom:16px; display:none; }
+
+@media(max-width:768px) {
+  .archive-header { padding: 32px 20px 28px; }
+  .archive-title { font-size: 32px; }
+  .archive-body { padding: 28px 16px 80px; }
+  .archive-form { grid-template-columns: 1fr; }
+  .archive-form-full { grid-column: 1; }
+  .archive-submit { grid-column: 1; }
+  .archive-list { grid-template-columns: 1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -374,6 +465,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
     <a id="nav-home" class="active" onclick="showPage('home')">Home</a>
     <a id="nav-category" onclick="showPage('category')">Categories</a>
     <a id="nav-about" onclick="showPage('about')">About</a>
+    <a id="nav-archive" onclick="showPage('archive')">Archive</a>
   </div>
   <div class="navbar-right">
     <button class="navbar-icon-btn" onclick="openSearch()" title="Search">🔍</button>
@@ -388,6 +480,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
   <a id="mnav-home" class="active" onclick="showPage('home');closeMobileMenu()">Home</a>
   <a id="mnav-category" onclick="showPage('category');closeMobileMenu()">Categories</a>
   <a id="mnav-about" onclick="showPage('about');closeMobileMenu()">About</a>
+  <a id="mnav-archive" onclick="showPage('archive');closeMobileMenu()">Archive</a>
   <a onclick="openSearch();closeMobileMenu()">🔍 Search</a>
   <button class="mobile-menu-cta" onclick="showPage('submit');closeMobileMenu()">+ Submit a Story</button>
 </div>
@@ -628,6 +721,49 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
   </div>
 </div>
 
+
+<!-- ═══ ARCHIVE ═══ -->
+<div class="page" id="page-archive">
+  <div class="archive-header">
+    <div class="archive-header-inner">
+      <div class="archive-eyebrow">CNN Story Archives</div>
+      <div class="archive-title">Archive</div>
+      <p class="archive-sub">Downloadable records of past CNN coverage. Each archive contains the full text of stories published during that period.</p>
+    </div>
+  </div>
+  <div class="archive-body">
+    <!-- Upload section -->
+    <div class="archive-upload-area">
+      <div class="archive-upload-title">📁 Upload New Archive</div>
+      <div class="archive-error" id="archive-error"></div>
+      <div class="archive-form">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Archive Title</label>
+          <input type="text" class="form-input" id="archive-title" placeholder="e.g. CNN Archive — January 2026">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">CSV File</label>
+          <input type="file" accept=".csv" class="form-input" id="archive-file" style="padding:10px 15px;">
+        </div>
+        <div class="form-group archive-form-full" style="margin-bottom:0;">
+          <label class="form-label">Description <span style="color:#bbb;font-size:9px;">(optional)</span></label>
+          <input type="text" class="form-input" id="archive-desc" placeholder="e.g. Stories from January and February 2026">
+        </div>
+        <button class="archive-submit" id="archive-upload-btn" onclick="uploadArchive()">Upload Archive</button>
+      </div>
+    </div>
+
+    <!-- Archive list -->
+    <div class="archive-list-title">Available Archives</div>
+    <div class="archive-list" id="archive-list">
+      <div class="archive-empty">
+        <div class="archive-empty-title">No Archives Yet</div>
+        Upload your first archive above.
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="footer">
   <div class="footer-inner">
     <div>
@@ -653,6 +789,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--fog);color:var(--charcoal
       <ul class="footer-links">
         <li><a onclick="showPage('about')">About CNN</a></li>
         <li><a onclick="showPage('about')">Newsroom</a></li>
+        <li><a onclick="showPage('archive')">Archive</a></li>
         <li><a onclick="showPage('submit')">File a Report</a></li>
       </ul>
     </div>
@@ -725,6 +862,85 @@ async function archiveOldArticles(){
     await db.from('articles').update({archived:true,img:null}).in('id',toArchive);
     articles=articles.map(a=>toArchive.includes(a.id)?{...a,archived:true,img:null}:a);
   }catch(err){console.error('Archive error:',err.message);}
+}
+
+/* ——— ARCHIVE PAGE ——— */
+async function fetchArchives() {
+  if (!db) return;
+  try {
+    const { data, error } = await db.from('archives').select('*').order('uploaded_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    renderArchiveList(data || []);
+  } catch(err) {
+    renderArchiveList([]);
+  }
+}
+
+function renderArchiveList(archives) {
+  const list = document.getElementById('archive-list');
+  if (!list) return;
+  if (archives.length === 0) {
+    list.innerHTML = '<div class="archive-empty"><div class="archive-empty-title">No Archives Yet</div>Upload your first archive above.</div>';
+    return;
+  }
+  list.innerHTML = archives.map(a => {
+    const desc = a.description ? `<div class="archive-card-desc">${a.description}</div>` : '';
+    return `<div class="archive-card">
+      <div class="archive-card-icon">📰</div>
+      <div class="archive-card-title">${a.title}</div>
+      ${desc}
+      <div class="archive-card-meta">Uploaded ${formatDate(a.uploaded_at)}</div>
+      <div class="archive-card-actions">
+        <a class="archive-download-btn" href="${a.file_url}" download="${a.filename}">⬇ Download CSV</a>
+        <button class="archive-delete-btn" onclick="deleteArchive(${a.id}, '${a.filename}')" title="Delete">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function uploadArchive() {
+  const title = document.getElementById('archive-title').value.trim();
+  const desc = document.getElementById('archive-desc').value.trim();
+  const fileInput = document.getElementById('archive-file');
+  const file = fileInput.files[0];
+  const errEl = document.getElementById('archive-error');
+  const btn = document.getElementById('archive-upload-btn');
+  errEl.style.display = 'none';
+  if (!title) { errEl.textContent = 'Please enter a title.'; errEl.style.display = 'block'; return; }
+  if (!file) { errEl.textContent = 'Please select a CSV file.'; errEl.style.display = 'block'; return; }
+  if (!file.name.endsWith('.csv')) { errEl.textContent = 'Only CSV files are accepted.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Uploading...';
+  try {
+    const filename = 'archive_' + Date.now() + '_' + file.name.replace(/[^a-z0-9._-]/gi, '_');
+    const { error: storageError } = await db.storage.from('cnn-archives').upload(filename, file, { contentType: 'text/csv', upsert: false });
+    if (storageError) throw new Error('Storage: ' + storageError.message);
+    const { data: urlData } = db.storage.from('cnn-archives').getPublicUrl(filename);
+    const { error } = await db.from('archives').insert([{
+      title, description: desc || null,
+      filename, file_url: urlData.publicUrl,
+      uploaded_at: Date.now()
+    }]).select();
+    if (error) throw new Error(error.message);
+    document.getElementById('archive-title').value = '';
+    document.getElementById('archive-desc').value = '';
+    fileInput.value = '';
+    await fetchArchives();
+  } catch(err) {
+    errEl.textContent = 'Upload failed: ' + err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Upload Archive';
+  }
+}
+
+async function deleteArchive(id, filename) {
+  if (!confirm('Delete this archive? This cannot be undone.')) return;
+  try {
+    await db.storage.from('cnn-archives').remove([filename]);
+    const { error } = await db.from('archives').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    await fetchArchives();
+  } catch(err) { alert('Delete failed: ' + err.message); }
 }
 
 /* VIEWS */
@@ -1053,6 +1269,7 @@ function showPage(name){
   const mel=document.getElementById('mnav-'+name);if(mel)mel.classList.add('active');
   if(name==='category')renderCategoryPage();
   if(name==='about')renderAbout();
+  if(name==='archive')fetchArchives();
   window.scrollTo(0,0);
 }
 
